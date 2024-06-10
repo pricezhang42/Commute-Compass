@@ -264,7 +264,10 @@ function DisplayRoute({routePlans, selectedPlanIndex}) {
         const request = {
           origin: { lat: parseFloat(fromGeographic.latitude), lng: parseFloat(fromGeographic.longitude) },
           destination: { lat: parseFloat(toGeographic.latitude), lng: parseFloat(toGeographic.longitude) },
-          travelMode: 'TRANSIT'
+          travelMode: 'TRANSIT',
+          transitOptions: {
+            routingPreference: 'LESS_WALKING'
+          }
         };
   
         const directionsDisplay = new routes.DirectionsRenderer({ map: map });
@@ -289,7 +292,23 @@ function RouteCards({routePlans, routeScores, setSelected}) {
   const cards = [];
 
   for (let i = 0; i < routeScores.length; i++) {
-    cards.push({id: i+1, title: 'Route ' + (i+1), description: `Score: ${routeScores[i].score}`});
+    const thisRoutePlan = routePlans[routeScores[i].planId-1];
+    var routeText = "| ";
+    thisRoutePlan.segments.forEach((segment, index) => {
+      console.log(segment);
+      routeText += segment.type;
+      if (segment.type === 'ride') {
+        routeText += ` riding:${segment.times.durations.riding} bus:${segment.route.key}`;
+        // routeText += " riding:" + segment.times.durations.riding + " " + segment.route.key;
+      } else if (segment.type === 'walk') {
+        routeText += " walking:" + segment.times.durations.walking;
+      } else if (segment.type === 'transfer') {
+        routeText += ` walking:${segment.times.durations.walking} waiting: ${segment.times.durations.waiting}(${segment.to.stop.isSheltered ? "sheltered":"unsheltered"})`;
+      }
+      routeText += " | ";
+    });
+    
+    cards.push({id: i+1, title: 'Route ' + (i+1), description: `Score: ${routeScores[i].score.toFixed(2)} TimeOutside: ${routeScores[i].totalTimeOutside} ${routeText}`});
     // cards.push({id: i, title: 'Route ' + i, description: `Score: ${routeScores[i-1]}`});
   }
 

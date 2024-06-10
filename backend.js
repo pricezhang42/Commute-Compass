@@ -109,10 +109,12 @@ const calculateRouteStats = async (plan) => {
             // If the stop is sheltered, update the number of sheltered stops, otherwise update the time spent outside if it exists
             if (isSheltered) {
                 numShelteredToStops++;
+                seg.to.stop["isSheltered"] = true;
             }
             else {
                 if (seg.times.durations.waiting) {
                     totalTimeOutside += seg.times.durations.waiting;
+                    seg.to.stop["isSheltered"] = false;
                 }
             }
         }
@@ -160,6 +162,7 @@ const normalizeRouteStats = (routeStats) => {
     for (const stat of routeStats) {
         stat.shelterDensity = stat.shelterDensity / maxShelterDensity;
         stat.totalDuration = stat.totalDuration / maxDuration;
+        stat["totalTimeOutsideUnnorm"] = stat.totalTimeOutside;
         stat.totalTimeOutside = stat.totalTimeOutside / maxTimeOutside;
         stat.numTransfers = stat.numTransfers / maxTransfers;
     }
@@ -171,8 +174,8 @@ const calculateRouteScores = (normalizedStats) => {
     const scores = [];
 
     for (const stat of normalizedStats) {
-        const score = stat.shelterDensity + (1 - stat.totalTimeOutside) + (1 - stat.totalDuration) + (1 - stat.numTransfers);
-        scores.push({ planId: stat.planId, score });
+        const score = stat.shelterDensity + 2*(1 - stat.totalTimeOutside) + (1 - stat.totalDuration) + (1 - stat.numTransfers);
+        scores.push({ planId: stat.planId, score: score, totalTimeOutside: stat.totalTimeOutsideUnnorm });
     }
     return scores;
 }
@@ -185,7 +188,7 @@ const main = async (origin, destination) => {
     const plans = await getPlans(origin, destination);
     const routeStats = await getRouteStats(plans);
     const normalizedStats = normalizeRouteStats(routeStats);
-    // console.log('Normalized Stats', normalizedStats);
+    console.log('Normalized Stats', normalizedStats);
     const routeScores = calculateRouteScores(normalizedStats);
     const orderedRouteScores = orderRouteScores(routeScores);
     // console.log('Scores', orderedRouteScores);
