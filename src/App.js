@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {APIProvider, Map, useMap, useMapsLibrary} from '@vis.gl/react-google-maps';
 import {PlaceAutocompleteClassic} from './autocomplete-classic';
+import './App.css';
 
 
 const serverPort = 3001;
@@ -55,10 +56,10 @@ const App = () => {
   return (
     <div className="App">
       <APIProvider apiKey={googleMapsApiKey}>
-        <h1>Bus Trip Planner</h1>
+        <h1>Commute Compass</h1>
         <div style={{ marginBottom: '10px' }}>
-          <PlaceAutocompleteClassic onPlaceSelect={setOrigin} currPos={currentPosition} /> 
-          <PlaceAutocompleteClassic onPlaceSelect={setDestination} currPos={currentPosition} />
+          <strong>Origin:</strong><PlaceAutocompleteClassic onPlaceSelect={setOrigin} currPos={currentPosition} /> 
+          <strong>Destination:</strong><PlaceAutocompleteClassic onPlaceSelect={setDestination} currPos={currentPosition} />
           <GetRouteButton origin={origin} destination={destination} setPlans={setRoutePlans} setScores={setScores} setSelected={setSelectedPlanIndex} />
         </div>
         <div style={containerStyle}>
@@ -66,7 +67,7 @@ const App = () => {
           defaultZoom={12}
           defaultCenter={center}
           gestureHandling={'greedy'}
-          disableDefaultUI={true}
+          disableDefaultUI={false}
         />
         </div>
         <GetCurrentCoord setPos={setCurrentPosition} />
@@ -287,44 +288,60 @@ function DisplayRoute({routePlans, selectedPlanIndex}) {
 
 
 
-function RouteCards({routePlans, routeScores, setSelected}) {
-
+function RouteCards({ routePlans, routeScores, setSelected }) {
   const cards = [];
 
   for (let i = 0; i < routeScores.length; i++) {
-    const thisRoutePlan = routePlans[routeScores[i].planId-1];
-    var routeText = "| ";
-    thisRoutePlan.segments.forEach((segment, index) => {
-      console.log(segment);
-      routeText += segment.type;
+    const thisRoutePlan = routePlans[routeScores[i].planId - 1];
+    let routeText = thisRoutePlan.segments.map((segment, index) => {
+      let segmentText = '';
       if (segment.type === 'ride') {
-        routeText += ` riding:${segment.times.durations.riding} bus:${segment.route.key}`;
-        // routeText += " riding:" + segment.times.durations.riding + " " + segment.route.key;
+        segmentText = (
+          <div key={index} className="segment">
+            ● <strong>Ride:</strong> Riding: {segment.times.durations.riding} min, Bus: {segment.route.key}
+          </div>
+        );
       } else if (segment.type === 'walk') {
-        routeText += " walking:" + segment.times.durations.walking;
+        segmentText = (
+          <div key={index} className="segment">
+            ● <strong>Walk:</strong> Walking: {segment.times.durations.walking} min
+          </div>
+        );
       } else if (segment.type === 'transfer') {
-        routeText += ` walking:${segment.times.durations.walking} waiting: ${segment.times.durations.waiting}(${segment.to.stop.isSheltered ? "sheltered":"unsheltered"})`;
+        segmentText = (
+          <div key={index} className="segment">
+            ● <strong>Transfer:</strong> Walking: {segment.times.durations.walking} min, Waiting: {segment.times.durations.waiting} min({segment.to.stop.isSheltered ? "sheltered" : "unsheltered"})
+          </div>
+        );
       }
-      routeText += " | ";
+      return segmentText;
     });
-    
-    cards.push({id: i+1, title: 'Route ' + (i+1), description: `Score: ${routeScores[i].score.toFixed(2)} TimeOutside: ${routeScores[i].totalTimeOutside} ${routeText}`});
-    // cards.push({id: i, title: 'Route ' + i, description: `Score: ${routeScores[i-1]}`});
+
+    cards.push({
+      id: i + 1,
+      title: 'Route ' + (i + 1),
+      description: (
+        <div>
+          <div><strong>Score:</strong> {routeScores[i].score.toFixed(2)} | <strong>Time Outside:</strong> {routeScores[i].totalTimeOutside} min</div>
+          <div className="segments">{routeText}</div>
+        </div>
+      ),
+    });
   }
 
   const handleClick = (index) => {
-    setSelected(routeScores[index-1].planId-1);
+    setSelected(routeScores[index - 1].planId - 1);
   };
 
   return (
     <div className="cards-container">
-    {cards.map((card) => (
-      <div key={card.id} className="card" onClick={() => handleClick(card.id)}>
-        <h2>{card.title}</h2>
-        <p>{card.description}</p>
-      </div>
-    ))}
-  </div>
+      {cards.map((card) => (
+        <div key={card.id} className="card" onClick={() => handleClick(card.id)}>
+          <h2>{card.title}</h2>
+          <div>{card.description}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 
