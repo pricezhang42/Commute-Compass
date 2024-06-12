@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Commute-Compass/static/css/main.ffba91e1.css",
-    "main.js": "/Commute-Compass/static/js/main.35f7911d.js",
+    "main.js": "/Commute-Compass/static/js/main.6b4dad33.js",
     "index.html": "/Commute-Compass/index.html",
     "main.ffba91e1.css.map": "/Commute-Compass/static/css/main.ffba91e1.css.map",
-    "main.35f7911d.js.map": "/Commute-Compass/static/js/main.35f7911d.js.map"
+    "main.6b4dad33.js.map": "/Commute-Compass/static/js/main.6b4dad33.js.map"
   },
   "entrypoints": [
     "static/css/main.ffba91e1.css",
-    "static/js/main.35f7911d.js"
+    "static/js/main.6b4dad33.js"
   ]
 }
