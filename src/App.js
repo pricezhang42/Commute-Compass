@@ -156,7 +156,7 @@ function GetRouteButton({ origin, destination, setPlans, setScores, setSelected 
       const coordOrigin = getCoordinates(origin);
       const coordDest = getCoordinates(destination);
       console.log(coordOrigin);
-      const response = await fetch(`http://localhost:${serverPort}/myFunction`, {
+      const response = await fetch(`https://commute-compass-backend.vercel.app/myFunction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
